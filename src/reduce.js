@@ -36,10 +36,17 @@ MockReduce.Reduce.prototype.run = function (testData, reduceFunction) {
 		if (!testData.hasOwnProperty(i)) {
 			continue;
 		}
-		var id = testData[i]._id;
+		var item = testData[i];
+		var id = item._id;
+
+		var value = item.value;
+		var reducedValue = value.length > 1
+			? reduceFunction(id, value)
+			: value[0];
+
 		this._reducedData.push({
 			"_id": id,
-			"value": reduceFunction(id, testData[i].value)
+			"value": reducedValue
 		});
 	}
 

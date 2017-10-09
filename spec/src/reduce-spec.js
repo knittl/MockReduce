@@ -23,6 +23,20 @@ describe('Reduce tests', function() {
 			expect(mapReduce.reduce.calls.count()).toEqual(3);
 	    });
 
+		it('does not call the reduce function for single results', function() {
+			var mapReduce = {
+				reduce: function() {}
+			};
+
+			spyOn(mapReduce, 'reduce');
+			var singleValues = [
+				{_id: 21, value: [2] },
+				{_id: 42, value: [3] }
+			];
+			this.reduce.run(singleValues, mapReduce.reduce);
+			expect(mapReduce.reduce.calls.count()).toEqual(0);
+		});
+
 		describe('Data Reducing', function() {
 			var reduce = function (key, values) {
 				var total = 0;
