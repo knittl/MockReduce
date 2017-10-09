@@ -66,6 +66,27 @@ describe('Map tests', function () {
 				expect(mappedDataActual).toEqual(mappedDataExpected);
 			});
 
+			it('can use (nested) objects as _id', function() {
+				var map = function () { emit(this._id, this.value); };
+				var mockData = [
+					{_id: { x: 3, y: { a: 4, b: 2 } }, value: 'Cornballer'},
+					{_id: { x: 2 }, value: 'Uncle Father Oscar'},
+					{_id: { y: { b: 2, a: 4 }, x: 3 }, value: 'Dead Dove DO NOT EAT'}
+				];
+				this.map.run(mockData, map);
+				var mappedDataActual = this.map.getMappedData();
+				expect(mappedDataActual).toEqual([
+					{
+						_id: { x: 3, y: { a: 4, b: 2 } },
+						value: [ 'Cornballer', 'Dead Dove DO NOT EAT' ]
+					},
+					{
+						_id: { x: 2 },
+						value: [ 'Uncle Father Oscar' ]
+					}
+				]);
+			});
+
 			it('returns the grouped data', function () {
 				var mappedDataActual = this.map.run(mockData, map);
 				expect(mappedDataActual).toEqual(mappedDataExpected);

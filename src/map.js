@@ -144,11 +144,54 @@ MockReduce.Map.prototype.getMappedData = function () {
  * @private
  */
 MockReduce.Map.prototype._addMappedDataToItsIdGroup = function (mappedData) {
-	if (this._mappedData[mappedData._id] == undefined) {
-		this._mappedData[mappedData._id] = {
+	var key = this._getKey(mappedData._id);
+
+	if (this._mappedData[key] == undefined) {
+		this._mappedData[key] = {
 			"_id": mappedData._id,
 			"value": []
 		};
 	}
-	this._mappedData[mappedData._id].value.push(mappedData.value);
+	this._mappedData[key].value.push(mappedData.value);
+};
+
+/**
+ * Calculates a string to be used as a key for the mapped data.
+ *
+ * - For objects a JSON representation with all properties sorted is returned.
+ * - For primitives the primitive is returned as a JSON string.
+ *
+ * @param id id to create key for
+ * @returns JSON string to be used as map key
+ * @private
+ */
+MockReduce.Map.prototype._getKey = function (id) {
+	return JSON.stringify(this._sortKey(id));
+};
+
+/**
+ * Sorts the properties of the object to be used as key for the mapped data:
+ *
+ * - If it is a primitive type, it is returned unaltered.
+ * - If it is an object, a new object with all properties in sorted order is returned.
+ *
+ * The algorithm is applied recursively to nested objects.
+ *
+ * @param id id to calculate key for, can be either object or primitive
+ * @returns the sorted object or unaltered primitive
+ * @private
+ */
+MockReduce.Map.prototype._sortKey = function (id) {
+	if (id !== Object(id)) return id;
+
+	var keys = Object.keys(id).sort();
+	var sortedObject = keys.map(key => {
+		var value = id[key];
+
+		var o = {};
+		o[key] = this._sortKey(value);
+		return o;
+	}).reduce((o, a) => Object.assign(o, a), {});
+
+	return sortedObject;
 };
