@@ -1,7 +1,27 @@
 MockReduce = function(map, reduce, scope) {
+	var self = this;
+	var returnMockReduce = function (callback) {
+		if (typeof callback === 'function') {
+			callback(null, self);
+			return self;
+		}
+
+		return Promise.resolve(self);
+	};
+
 	this.map = map;
 	this.reduce = reduce;
 	this._scope = scope;
+
+	this.find = function(query) { return self; };
+	this.sort = function(keyOrList, direction) { return self; };
+	this.limit = function(value) { return self; };
+	this.next = function(callback) { return callback ? callback(null, null) : Promise.resolve(null); };
+	this.ensureIndex = function(fieldOrSpec, options, callback) { return returnMockReduce(callback); };
+};
+
+MockReduce.prototype.s = {
+  name: 'mockReduce'
 };
 
 /**
