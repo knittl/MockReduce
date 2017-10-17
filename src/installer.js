@@ -101,10 +101,38 @@ MockReduce.Installer.prototype._installConnect = function (mockReduce) {
 	this._originalConnect = this._connector.connect;
 	this._connector.connect = function(url, callback) {
 		callback = callback || function() {};
-		var returnMockReduce = function () {
-			return mockReduce;
+		var returnMockReduce = function (callback) {
+			if (typeof callback === 'function') {
+				callback(null, mockReduce);
+				return mockReduce;
+			}
+
+			return Promise.resolve(mockReduce);
 		};
-		callback(null, {collection: returnMockReduce});
+
+		callback(null, {
+			collection: function(name, options, callback) {
+				// never returns a promise, therefor cannot use returnMockReduce function
+				if(typeof options == 'function') callback = options, options = {};
+				options = options || {};
+
+				if(options == null || !options.strict) {
+					try {
+						var collection = mockReduce;
+						if(callback) callback(null, collection);
+						return collection;
+					} catch(err) {
+						if(callback) return callback(err);
+						throw err;
+					}
+				}
+
+				return callback(null, mockReduce);
+			},
+			close: function(force, callback) {
+				return returnMockReduce(callback);
+			}
+		});
 	};
 };
 
