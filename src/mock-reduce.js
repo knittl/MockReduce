@@ -155,12 +155,30 @@ MockReduce.prototype.mapReduce = function () {
 		if (options.scope != undefined) {
 			mapReduce.scope = options.scope;
 		}
+
+		if (options.verbose === true && doneCallback) {
+			var originalDoneCallback = doneCallback;
+			doneCallback = function(error, result) {
+				return originalDoneCallback(error, verbose(result));
+			};
+		}
 	} else {
 		mapReduce = arguments[0];
 		doneCallback = arguments[1];
 	}
 
-	return this.run(mapReduce, doneCallback);
+	var result = this.run(mapReduce, doneCallback);
+	if (!result) return result;
+	return verbose(result);
+};
+
+function verbose(data) {
+	return {
+		data: data,
+		stats: {
+			counts: {}
+		}
+	};
 };
 
 /**
